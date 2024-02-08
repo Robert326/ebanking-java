@@ -17,6 +17,7 @@ public class Main {
             app.setFilepathCommands(filepathCommands);
             app.getFileContains(filepathCommands);
             app.setFilepathExchangeRates(filepathExchangeRates);
+            app.setFilepathStocks(filepathStockValues);
             List<String> contents = app.getFile();
             for (String line : contents) {
                 String[] words = line.split(" ");
@@ -24,8 +25,8 @@ public class Main {
                     String command = words[0] + " " + words[1];
                     switch (command) {
                         case ("CREATE USER"):
-                            CreateUser createUserCommand = new CreateUser(words[3], words[4], words[2],
-                                    String.join(" ", Arrays.copyOfRange(words, 5, words.length)));
+                            String address = String.join(" ", Arrays.copyOfRange(words, 5, words.length));
+                            CreateUser createUserCommand = new CreateUser(words[3], words[4], words[2], address, false);
                             app.executeCommand(createUserCommand);
                             break;
                         case ("ADD FRIEND"):
@@ -56,14 +57,22 @@ public class Main {
                             app.executeCommand(transferMoneyCommand);
                             break;
                         case ("BUY STOCKS"):
-
+                            BuyStockCommand buyStockCommand = new BuyStockCommand(words[2], words[3],
+                                    Integer.parseInt(words[4]), filepathStockValues);
+                            app.executeCommand(buyStockCommand);
                             break;
                         case ("RECOMMEND STOCKS"):
+                            RecommendStockCommand recommendStockCommand = new RecommendStockCommand(filepathStockValues);
+                            app.executeCommand(recommendStockCommand);
                             break;
                         case ("LIST PORTFOLIO"):
                             ShowUserPortfolioCommand showUserPortfolioCommand =
                                     new ShowUserPortfolioCommand(words[2]);
                             app.executeCommand(showUserPortfolioCommand);
+                            break;
+                        case ("BUY PREMIUM"):
+                            BuyPremiumCommand buyPremiumCommand = new BuyPremiumCommand(words[2]);
+                            app.executeCommand(buyPremiumCommand);
                             break;
                     }
                 }

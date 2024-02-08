@@ -17,7 +17,8 @@ public class App {
     private Map<String, User> users;
     private String filepathCommands;
 
-
+    private ArrayList<String> stocksToBuy;
+    private String filepathStocks;
     private String filepathExchangeRates;
     private List<String> fileContains;
 
@@ -30,6 +31,18 @@ public class App {
             instance = new App();
         }
         return instance;
+    }
+
+    public String getFilepathStocks() {
+        return filepathStocks;
+    }
+
+    public void setFilepathStocks(String filepathStocks) {
+        this.filepathStocks = filepathStocks;
+    }
+
+    public void addRecommended(String name) {
+        this.stocksToBuy.add(name);
     }
 
     public void setFilepathExchangeRates(String filepathExchangeRates) {
@@ -187,10 +200,10 @@ public class App {
                     System.out.println("Insufficient amount in account " + sourceAccount + " for exchange");
                     return;
                 }
-                if (amount * exchangeRate > 0.5 * userAcc.getAmount()) {
+                if ((amount * exchangeRate > 0.5 * userAcc.getAmount()) && !user.isPremium()) {
                     //the commission of 1% applies
                     userAcc.withdraw(amount * exchangeRate + amount * exchangeRate / 100);
-                } else if (amount * exchangeRate <= 0.5 * userAcc.getAmount()) {
+                } else if (amount * exchangeRate <= 0.5 * userAcc.getAmount() || user.isPremium()) {
                     userAcc.withdraw(amount * exchangeRate);
                 }
                 //add the money to destination
@@ -258,8 +271,107 @@ public class App {
         System.out.println(userJsonString);
     }
 
+    public void BuyStocks(String userEmail, String stockType, int numberOfStocks, String filepathStocks) {
+        double stockvalue = 0;
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filepathStocks));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] values = line.split(",");
+                if (values[0].equals(stockType)) {
+                    stockvalue = Double.parseDouble(values[values.length - 1]);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        User user = getUser(userEmail);
+        ArrayList<Account> accounts = user.getAccounts();
+        for (Account account : accounts) {
+            if (account.getType().equals("USD")) {
+                if (account.getAmount() < stockvalue * numberOfStocks) {
+                    System.out.println("Insufficient amount in account for buying stock");
+                    return;
+                }
+                //in case you have enough money you will buy them
+                account.withdraw(numberOfStocks * stockvalue);
+                ArrayList<Stocks> stocks = user.getStocks();
+                Stocks stock = new Stocks(stockType, numberOfStocks);
+                stocks.add(stock);
+                user.setStocks(stocks);
+            }
+        }
+    }
+
+    public void setStocksToBuy(ArrayList<String> stocksToBuy) {
+        this.stocksToBuy = stocksToBuy;
+    }
+
+    public void RecommendingStocks(String filepathStocks) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filepathStocks));
+            String line;
+            line = reader.readLine();
+            while ((line = reader.readLine()) != null) {
+                String[] values = line.split(",");
+                double lastFiveDays = 0;
+                double lastTenDays = 0;
+                for (int i = 1; i < values.length; i++) {
+                    if (i < 6) {
+                        lastTenDays += Double.parseDouble(values[i]);
+                    } else {
+                        lastTenDays += Double.parseDouble(values[i]);
+                        lastFiveDays += Double.parseDouble(values[i]);
+                    }
+                }
+                double lastFiveDaysAverage = lastFiveDays / 5.0;
+                double lastTenDaysAverage = lastTenDays / 10.0;
+                if (lastFiveDaysAverage > lastTenDaysAverage) {
+                    if (this.stocksToBuy != null) {
+                        this.stocksToBuy.add(values[0]);
+                    } else {
+                        this.stocksToBuy = new ArrayList<>();
+                        this.stocksToBuy.add(values[0]);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Gson gson = new Gson();
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("stockstobuy", gson.toJsonTree(this.stocksToBuy));
+        String json = gson.toJson(jsonObject);
+        System.out.println(json);
+
+    }
+
+    public void BuyPremium(String userEmail) {
+        User user = users.get(userEmail);
+        if (user == null) {
+            System.out.println("User with " + userEmail + " doesn't exist");
+            return;
+        }
+
+        ArrayList<Account> accounts = user.getAccounts();
+        for (Account account : accounts) {
+            if (account.getType().equals("USD")) {
+                if (account.getAmount() < 100) {
+                    System.out.println("Insufficient amount in account for buying premium option");
+                    return;
+                }
+                //in case there's money to buy the premium account the user buys it
+                account.withdraw(100);
+                user.setPremium(true);
+            }
+        }
+    }
+
     public void clear() {
         users.clear();
+        if (stocksToBuy != null)
+            stocksToBuy.clear();
     }
 
     public void executeCommand(Command command) {

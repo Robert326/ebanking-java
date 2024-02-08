@@ -1,0 +1,12 @@
+CREATE USER boglisStefan@horsemail.com Boglis Stefan Strada Alexandru Obregia 6
+ADD ACCOUNT boglisStefan@horsemail.com USD
+BUY PREMIUM boglisStefan@horsemail.com
+ADD MONEY boglisStefan@horsemail.com USD 100
+LIST PORTFOLIO boglisStefan@horsemail.com
+BUY PREMIUM boglisStefan@horsemail.com
+LIST PORTFOLIO boglisStefan@horsemail.com
+ADD MONEY boglisStefan@horsemail.com USD 1000
+ADD ACCOUNT boglisStefan@horsemail.com EUR
+EXCHANGE MONEY boglisStefan@horsemail.com USD EUR 450
+LIST PORTFOLIO boglisStefan@horsemail.com
+BUY PREMIUM stamatie@talpaiute.com

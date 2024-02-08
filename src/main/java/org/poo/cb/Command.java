@@ -11,15 +11,23 @@ class CreateUser implements Command {
     private String email;
     private String address;
 
-    public CreateUser(String firstName, String name, String email, String address) {
+    private boolean isPremium;
+
+    public CreateUser(String firstName, String name, String email, String address, boolean isPremium) {
         this.firstName = firstName;
         this.name = name;
         this.email = email;
         this.address = address;
+        this.isPremium = isPremium;
     }
 
     public void execute() {
-        User newUser = new User(firstName, name, email, address);
+        User newUser = new User.Builder(email)
+                .firstName(firstName)
+                .lastname(name)
+                .address(address)
+                .isPremium(isPremium)
+                .build();
         App.getInstance().addUser(newUser);
     }
 }
@@ -135,13 +143,49 @@ class ShowUserPortfolioCommand implements Command {
     }
 }
 
-//class RecommendStocksCommand implements Command {
-//
-//    protected void execute() {
-//        App.getInstance().
-//    }
-//}
+class BuyStockCommand implements Command {
+    private String stockType;
+    private int amount;
+    private String userEmail;
 
+    private String filepathStocks;
+
+    public BuyStockCommand(String userEmail, String stockType, int amount, String filepathStocks) {
+        this.stockType = stockType;
+        this.amount = amount;
+        this.filepathStocks = filepathStocks;
+        this.userEmail = userEmail;
+    }
+
+    public void execute() {
+        App.getInstance().BuyStocks(userEmail, stockType, amount, filepathStocks);
+    }
+}
+
+class RecommendStockCommand implements Command {
+    private String filepath;
+
+    public RecommendStockCommand(String filepath) {
+        this.filepath = filepath;
+    }
+
+    public void execute() {
+        App.getInstance().RecommendingStocks(filepath);
+    }
+}
+
+class BuyPremiumCommand implements Command {
+    private String userEmail;
+
+    public BuyPremiumCommand(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public void execute() {
+        App.getInstance().BuyPremium(userEmail);
+    }
+
+}
 
 
 
